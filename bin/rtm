@@ -1,0 +1,61 @@
+#!/usr/bin/ruby
+require 'optparse'
+require '../lib/rtm'
+
+class App
+  def run 
+    self.parse_options
+    @tracker = RTM::Tracker.new(@options)
+    self.process   
+   end
+  
+  protected
+  
+  def parse_options
+    @options = {
+      :action   =>  'show',
+      :notebook =>  'default'
+    }
+    
+    OptionParser.new do |options|
+      options.banner = "Usage: rtracker [options]"
+
+      options.on("-a", "--action=ACTION", "Set action (show, add, del)") do |action|
+        @options[:action] = action
+      end
+      
+      options.on("-h", "--header=HEADER", "Task header") do |header|
+        @options[:header] = header
+      end      
+
+      options.on("-t", "--text=TEXT", "Task text") do |text|
+        @options[:text] = text
+      end      
+      
+      options.on("-n", "--notebook=NOTEBOOK", "Set task notebook") do |action|
+        @options[:notebook] = action
+      end      
+      
+      options.on("-I", "--id=ID", "Task id") do |i|
+        @options[:id] = i
+      end
+
+      options.on("-i", "--interval=INTERVAL", "Task interval in format BEGIN:END or 'today[+n]'") do |interval|
+        @options[:interval] = Time.parse_cli_interval(interval)
+      end
+    end.parse!  
+  end
+  
+  ACTIONS = ['show', 'add', 'del']
+  
+  def process
+    action = @options.delete(:action)
+    if ACTIONS.include?(action)
+      @tracker.send action, @options
+    else
+      $stderr.puts "Unknown action #{action}"
+    end
+  end
+end
+
+App.new.run
