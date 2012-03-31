@@ -1,41 +1,43 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift(File.join(File.expand_path(File.dirname(__FILE__)), '..', 'lib'))
+
 require 'optparse'
-require '../lib/rtm'
+require 'rtm'
 
 class App
-  def run 
+  def run
     self.parse_options
     @tracker = RTM::Tracker.new(@options)
-    self.process   
-   end
-  
+    self.process
+  rescue Exception => e
+    puts "[ERROR] #{e.message}"
+  end
+
   protected
-  
+
   def parse_options
     @options = {
       :action   =>  'show',
       :notebook =>  'default'
     }
-    
-    OptionParser.new do |options|
-      options.banner = "Usage: rtracker [options]"
 
-      options.on("-a", "--action=ACTION", "Set action (show, add, del)") do |action|
-        @options[:action] = action
-      end
-      
+    OptionParser.new do |options|
+      options.banner =
+        "Usage: rtracker action [options]\nValid actions are:\nshow\tShow task(s)\nadd\tAdd a new task\ndel\tRemove the task"
+
       options.on("-h", "--header=HEADER", "Task header") do |header|
         @options[:header] = header
-      end      
+      end
 
       options.on("-t", "--text=TEXT", "Task text") do |text|
         @options[:text] = text
-      end      
-      
+      end
+
       options.on("-n", "--notebook=NOTEBOOK", "Set task notebook") do |action|
         @options[:notebook] = action
-      end      
-      
+      end
+
       options.on("-I", "--id=ID", "Task id") do |i|
         @options[:id] = i
       end
@@ -43,11 +45,15 @@ class App
       options.on("-i", "--interval=INTERVAL", "Task interval in format BEGIN:END or 'today[+n]'") do |interval|
         @options[:interval] = Time.parse_cli_interval(interval)
       end
-    end.parse!  
+    end.parse!
+
+    if !ARGV.empty? && ARGV.first != nil
+      @options[:action] = ARGV.first
+    end
   end
-  
+
   ACTIONS = ['show', 'add', 'del']
-  
+
   def process
     action = @options.delete(:action)
     if ACTIONS.include?(action)
@@ -59,3 +65,4 @@ class App
 end
 
 App.new.run
+

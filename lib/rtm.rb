@@ -14,33 +14,36 @@ module RTM
         options.delete(:notebook), Task)
       @ui = UI.new
     end
-    
+
     def show(options)
       query = make_query(options)
-      tasks = Task.get &query
+      tasks = Task.get(&query)
       @ui.show_tasks(tasks)
     end
-    
+
     def add(options)
       Task.create(options)
-      @ui.message "Task has been created"
+      @ui.message("Task has been created")
     end
-    
+
     def del(options)
       query = make_query(options)
-      count = Task.del &query
-      @ui.message "#{count} tasks has been deleted"
+      count = Task.del(&query)
+      @ui.message("#{count} tasks has been deleted")
     end
-    
+
     protected
     def make_query(options)
       if interval = options[:interval]
-        proc { |obj| obj.created_at > interval.first && obj.created_at < interval.last  }
+        proc { |obj|
+           obj.created_at > interval.first && obj.created_at < interval.last
+        }
       elsif oid = options[:id]
         proc { |obj| obj.id == oid.to_i }
-      else 
+      else
         proc { |obj| true }
-      end   
+      end
     end
   end
 end
+

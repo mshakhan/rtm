@@ -8,17 +8,21 @@ class Time
 
   def end_of_day
     Time.mktime(
-      year, month, day, 23, 59, 59).send(gmt? ? :gmt : :localtime) 
+      year, month, day, 23, 59, 59).send(gmt? ? :gmt : :localtime)
   end
 
   def add_days(days)
-    self + days * 86400   
+    self + days * 86400
   end
 
   def subtract_days(days)
-    self - days * 86400     
+    self - days * 86400
   end
-  
+
+  def cli_format
+    self.strftime("%m/%d/%Y %H:%M")
+  end
+
   def self.parse_cli_interval(value)
     case value
     when /(.*):(.*)/
@@ -27,9 +31,9 @@ class Time
       [from, to]
     when /today([\+-]\d+)*/
       t1 = Time.now.begining_of_day
-      addition = $1.to_i      
+      addition = $1.to_i
       t2 = if 0 == addition
-        t2 = t1.end_of_day 
+        t2 = t1.end_of_day
       else
         t1.add_days addition
       end
@@ -39,27 +43,19 @@ class Time
         [t2, t1]
       end
     else
-      raise ArgumentError, 'invalid date interval format' 
+      raise ArgumentError, 'invalid date interval format'
     end
-  end
-end
-
-class Array
-  def in_groups_of(n, default = nil)
-    groups = []
-    (self.size / n + 1).times do |i|
-      group = []
-      n.times do |j|
-        group << (self[i * n + j] || default)
-      end
-      groups << group
-    end
-    groups
   end
 end
 
 class String
-  def width(width)
-    self.split(//).in_groups_of(width, '').map { |line| line.join }.join("\n")
+  def align(width)
+    diff = width - self.length
+    if diff > 0
+      "#{self}#{' ' * diff}"
+    else
+      self[0...(width - 3)] + '...'
+    end
   end
 end
+
